@@ -14,7 +14,7 @@ exports.handler = async (event) => {
     const accessKeyId = secret.access_key_id;
     const secretAccessKey = secret.aws_secret_access_key;
 
-    AWS.config.update({
+    const sesWithCredentials = new AWS.SES({
       region: region,
       accessKeyId: accessKeyId,
       secretAccessKey: secretAccessKey,
@@ -39,7 +39,7 @@ exports.handler = async (event) => {
       Source: "sender@example.com",
     };
 
-    await ses.sendEmail(params).promise();
+    await sesWithCredentials.sendEmail(params).promise();
 
     return { statusCode: 200, body: "Email sent successfully" };
   } catch (err) {
