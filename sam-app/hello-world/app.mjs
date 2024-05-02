@@ -1,21 +1,8 @@
-// const aws = require("aws-sdk");
+import AWS from "aws-sdk";
 
-// export const lambdaHandler = async (event, context) => {
-//     const response = {
-//       statusCode: 200,
-//       body: JSON.stringify({
-//         message: 'hello world',
-//       })
-//     };
-
-//     return response;
-//   };
-
-const aws = require("aws-sdk");
-
-exports.handler = async (event, context) => {
-  const ses = new aws.SES();
-  const { recipientEmail, emailSubject, emailBody } = event;
+export const lambdaHandler = async (event, context) => {
+  const ses = new AWS.SES();
+  const { recipientEmail, emailSubject, emailBody } = event.body; 
   const params = {
     Destination: {
       ToAddresses: [recipientEmail],
@@ -23,28 +10,27 @@ exports.handler = async (event, context) => {
     Message: {
       Body: {
         Text: {
-          Data: emailBody,
+          Data: emailBody || "", 
         },
       },
       Subject: {
-        Data: emailSubject,
+        Data: emailSubject || "", 
       },
     },
     Source: "sender@example.com",
   };
   try {
     const data = await ses.sendEmail(params).promise();
-    console.log("email send!", data);
+    console.log("Email sent!", data);
     return {
       statusCode: 200,
-      body: JSON.stringify("email sent successfully!")
-    }
-    
+      body: JSON.stringify("Email sent successfully!")
+    };
   } catch (error) {
-    console.error ("error sending the email", error.message || error);
+    console.error("Error sending the email", error.message || error);
     return {
       statusCode: 500,
-      body: JSON.stringify("error in sending the email")
-    }
+      body: JSON.stringify("Error in sending the email")
+    };
   }
 };
