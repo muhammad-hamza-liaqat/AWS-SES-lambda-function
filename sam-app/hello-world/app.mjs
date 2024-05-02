@@ -1,36 +1,49 @@
-import AWS from "aws-sdk";
+const AWS = require("aws-sdk");
+const secretsManager = new AWS.SecretsManager();
+const ses = new AWS.SES();
 
-export const lambdaHandler = async (event, context) => {
-  const ses = new AWS.SES();
-  const { recipientEmail, emailSubject, emailBody } = event.body; 
-  const params = {
-    Destination: {
-      ToAddresses: [recipientEmail],
-    },
-    Message: {
-      Body: {
-        Text: {
-          Data: emailBody || "", 
+exports.handler = async (event) => {
+  try {
+    const data = await secretsManager
+      .getSecretValue({ SecretId: "your-secret-id" })
+      .promise();
+
+    const secret = JSON.parse(data.SecretString);
+
+    const region = secret.AWS_REGION;
+    const accessKeyId = secret.AWS_ACCESS_KEY_ID;
+    const secretAccessKey = secret.AWS_SECRET_ACCESS_KEY;
+
+    // Configure AWS
+    AWS.config.update({
+      region: region,
+      accessKeyId: accessKeyId,
+      secretAccessKey: secretAccessKey,
+    });
+
+    // Send email using SES
+    const params = {
+      Destination: {
+        ToAddresses: ["recipient@example.com"],
+      },
+      Message: {
+        Body: {
+          Text: {
+            Data: "This is a test email sent from AWS Lambda.",
+          },
+        },
+        Subject: {
+          Data: "Test Email from AWS Lambda",
         },
       },
-      Subject: {
-        Data: emailSubject || "", 
-      },
-    },
-    Source: "sender@example.com",
-  };
-  try {
-    const data = await ses.sendEmail(params).promise();
-    console.log("Email sent!", data);
-    return {
-      statusCode: 200,
-      body: JSON.stringify("Email sent successfully!")
+      Source: "sender@example.com",
     };
-  } catch (error) {
-    console.error("Error sending the email", error.message || error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify("Error in sending the email")
-    };
+
+    await ses.sendEmail(params).promise();
+
+    return { statusCode: 200, body: "Email sent successfully" };
+  } catch (err) {
+    console.error("Error:", err);
+    return { statusCode: 500, body: "Error sending email" };
   }
 };
