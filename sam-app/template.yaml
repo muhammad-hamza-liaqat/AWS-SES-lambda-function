@@ -22,12 +22,17 @@ Resources:
       Runtime: nodejs20.x
       Architectures:
       - x86_64
+      Environment:
+        Variables: 
+          AWS_REGION: ""
+          AWS_ACCESS_KEY_ID: ""
+          AWS_SECRET_ACCESS_KEY: ""
       Events:
         HelloWorld:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
-            Path: /hello
-            Method: get
+            Path: /send-email
+            Method: post
 
   ApplicationResourceGroup:
     Type: AWS::ResourceGroups::Group
