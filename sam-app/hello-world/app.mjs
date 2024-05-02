@@ -10,30 +10,30 @@ exports.handler = async (event) => {
 
     const secret = JSON.parse(data.SecretString);
 
-    const region = secret.AWS_REGION;
-    const accessKeyId = secret.AWS_ACCESS_KEY_ID;
-    const secretAccessKey = secret.AWS_SECRET_ACCESS_KEY;
+    const region = secret.aws_region;
+    const accessKeyId = secret.access_key_id;
+    const secretAccessKey = secret.aws_secret_access_key;
 
-    // Configure AWS
     AWS.config.update({
       region: region,
       accessKeyId: accessKeyId,
       secretAccessKey: secretAccessKey,
     });
 
-    // Send email using SES
+    const { to, subject, body } = JSON.parse(event.body);
+
     const params = {
       Destination: {
-        ToAddresses: ["recipient@example.com"],
+        ToAddresses: [to],
       },
       Message: {
         Body: {
           Text: {
-            Data: "This is a test email sent from AWS Lambda.",
+            Data: body,
           },
         },
         Subject: {
-          Data: "Test Email from AWS Lambda",
+          Data: subject,
         },
       },
       Source: "sender@example.com",
